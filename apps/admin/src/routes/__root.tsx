@@ -32,7 +32,7 @@ function RootLayout() {
       <main className="mx-auto max-w-6xl px-6 py-10">
         <Outlet />
       </main>
-      <TanStackRouterDevtools position="bottom-right" />
+      {import.meta.env.DEV ? <TanStackRouterDevtools position="bottom-right" /> : null}
     </div>
   );
 }

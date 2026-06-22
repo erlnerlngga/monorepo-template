@@ -5,6 +5,7 @@ pnpm workspace with:
 - `apps/api`: Hono API on Node.js.
 - `apps/platform`: React + Vite + TanStack Router file routes + TanStack Query.
 - `apps/admin`: React + Vite + TanStack Router file routes + TanStack Query.
+- `packages/api-client`: typed Hono RPC client shared by the frontend apps.
 - `packages/config`: typed server-side environment config.
 - `packages/i18n`: i18next setup shared by the frontend apps.
 - `packages/logger`: Pino logger setup with OpenTelemetry-friendly trace fields.
@@ -32,6 +33,31 @@ pnpm --filter @repo/api dev
 pnpm --filter @repo/platform dev
 pnpm --filter @repo/admin dev
 pnpm --filter @repo/worker dev
+```
+
+## Tests
+
+```sh
+pnpm test
+```
+
+This runs the base Vitest suites for API, Platform, Admin, and Worker.
+
+## Auth and API Client
+
+The API uses Better Auth for email/password auth, session cookies, and admin roles. Better Auth is mounted at `/api/auth/*`; custom API routes use Hono RPC types through `packages/api-client`.
+
+Frontend apps should use:
+
+- Better Auth client methods for sign-in, sign-up, and sign-out.
+- `createApiClient()` from `@repo/api-client` for typed API routes such as `/session` and `/users`.
+
+Configure auth with `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, and `CLIENT_ORIGINS` in `.env`.
+
+Create or promote an admin user:
+
+```sh
+pnpm createsuperuser
 ```
 
 ## Storage

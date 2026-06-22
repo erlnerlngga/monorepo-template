@@ -1,7 +1,12 @@
-import { authApiPaths } from "./schema";
-import type { AuthResponse, AuthUser, LoginInput, RegisterInput } from "./types";
+import { createApiClient } from "@repo/api-client";
+import { createAuthClient } from "better-auth/react";
+import type { AuthUser, LoginInput, RegisterInput } from "./types";
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const apiClient = createApiClient(apiBaseUrl);
+const authClient = createAuthClient({
+  baseURL: apiBaseUrl,
+});
 
 export class UnauthorizedError extends Error {
   constructor() {
@@ -11,9 +16,7 @@ export class UnauthorizedError extends Error {
 }
 
 export async function getCurrentUser() {
-  const response = await fetch(`${apiBaseUrl}${authApiPaths.me}`, {
-    credentials: "include",
-  });
+  const response = await apiClient.session.$get();
 
   if (response.status === 401) {
     throw new UnauthorizedError();
@@ -23,45 +26,39 @@ export async function getCurrentUser() {
     throw new Error("Failed to load current user.");
   }
 
-  const data = (await response.json()) as { user: AuthUser };
+  const data = await response.json();
 
-  return data.user;
+  return data.user as AuthUser;
 }
 
 export async function login(input: LoginInput) {
-  return authRequest(authApiPaths.login, input);
+  const { error } = await authClient.signIn.email(input);
+
+  if (error) {
+    throw new Error(error.message ?? "Authentication failed.");
+  }
+
+  return getCurrentUser();
 }
 
 export async function register(input: RegisterInput) {
-  return authRequest(authApiPaths.register, input);
+  const { error } = await authClient.signUp.email({
+    email: input.email,
+    name: input.name?.trim() || input.email,
+    password: input.password,
+  });
+
+  if (error) {
+    throw new Error(error.message ?? "Registration failed.");
+  }
+
+  return getCurrentUser();
 }
 
 export async function logout() {
-  const response = await fetch(`${apiBaseUrl}${authApiPaths.logout}`, {
-    method: "POST",
-    credentials: "include",
-  });
+  const { error } = await authClient.signOut();
 
-  if (!response.ok) {
-    throw new Error("Failed to log out.");
+  if (error) {
+    throw new Error(error.message ?? "Failed to log out.");
   }
-}
-
-async function authRequest(path: string, input: LoginInput | RegisterInput) {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(input),
-  });
-
-  const data = (await response.json().catch(() => null)) as AuthResponse | null;
-
-  if (!response.ok || !data?.user) {
-    throw new Error(data?.error ?? "Authentication failed.");
-  }
-
-  return data.user;
 }

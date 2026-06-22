@@ -25,7 +25,7 @@ export function PlatformDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {t("dashboard.session")}
-            <Badge>{user.data.role}</Badge>
+            <Badge>{user.data.role ?? "user"}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">

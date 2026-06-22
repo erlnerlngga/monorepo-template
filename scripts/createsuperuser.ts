@@ -1,6 +1,6 @@
 import { stdin as input, stdout as output } from "node:process";
 import { createInterface } from "node:readline/promises";
-import { hashPassword } from "../apps/api/src/modules/auth/password";
+import { auth } from "../apps/api/src/modules/auth/auth";
 import { prisma } from "../apps/api/src/utils/prisma";
 
 const rl = createInterface({ input, output });
@@ -23,23 +23,30 @@ try {
     throw new Error("Passwords do not match.");
   }
 
-  const passwordHash = await hashPassword(password);
-  const user = await prisma.user.upsert({
-    where: { email },
-    update: {
-      name,
-      passwordHash,
-      role: "ADMIN",
-    },
-    create: {
-      email,
-      name,
-      passwordHash,
-      role: "ADMIN",
-    },
-  });
+  const existingUser = await prisma.user.findUnique({ where: { email } });
 
-  output.write(`Admin user ready: ${user.email}\n`);
+  if (existingUser) {
+    const user = await prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        ...(name ? { name } : {}),
+        role: "admin",
+      },
+    });
+
+    output.write(`Admin user ready: ${user.email}. Existing password was not changed.\n`);
+  } else {
+    const { user } = await auth.api.createUser({
+      body: {
+        email,
+        name: name ?? email,
+        password,
+        role: "admin",
+      },
+    });
+
+    output.write(`Admin user ready: ${user.email}\n`);
+  }
 } catch (error) {
   const message = error instanceof Error ? error.message : "Failed to create admin user.";
   output.write(`Error: ${message}\n`);

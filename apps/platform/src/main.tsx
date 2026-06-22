@@ -35,7 +35,7 @@ createRoot(rootElement).render(
     <AppI18nProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
-        <ReactQueryDevtools buttonPosition="bottom-left" />
+        {import.meta.env.DEV ? <ReactQueryDevtools buttonPosition="bottom-left" /> : null}
       </QueryClientProvider>
     </AppI18nProvider>
   </StrictMode>,

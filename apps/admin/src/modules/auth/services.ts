@@ -1,7 +1,12 @@
-import { authApiPaths } from "./schema";
-import type { AuthResponse, AuthUser, LoginInput } from "./types";
+import { createApiClient } from "@repo/api-client";
+import { createAuthClient } from "better-auth/react";
+import type { AuthUser, LoginInput } from "./types";
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const apiClient = createApiClient(apiBaseUrl);
+const authClient = createAuthClient({
+  baseURL: apiBaseUrl,
+});
 
 export class UnauthorizedError extends Error {
   constructor() {
@@ -11,9 +16,7 @@ export class UnauthorizedError extends Error {
 }
 
 export async function getCurrentUser() {
-  const response = await fetch(`${apiBaseUrl}${authApiPaths.me}`, {
-    credentials: "include",
-  });
+  const response = await apiClient.session.$get();
 
   if (response.status === 401) {
     throw new UnauthorizedError();
@@ -23,37 +26,25 @@ export async function getCurrentUser() {
     throw new Error("Failed to load current user.");
   }
 
-  const data = (await response.json()) as { user: AuthUser };
+  const data = await response.json();
 
-  return data.user;
+  return data.user as AuthUser;
 }
 
 export async function login(input: LoginInput) {
-  const response = await fetch(`${apiBaseUrl}${authApiPaths.login}`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(input),
-  });
+  const { error } = await authClient.signIn.email(input);
 
-  const data = (await response.json().catch(() => null)) as AuthResponse | null;
-
-  if (!response.ok || !data?.user) {
-    throw new Error(data?.error ?? "Authentication failed.");
+  if (error) {
+    throw new Error(error.message ?? "Authentication failed.");
   }
 
-  return data.user;
+  return getCurrentUser();
 }
 
 export async function logout() {
-  const response = await fetch(`${apiBaseUrl}${authApiPaths.logout}`, {
-    method: "POST",
-    credentials: "include",
-  });
+  const { error } = await authClient.signOut();
 
-  if (!response.ok) {
-    throw new Error("Failed to log out.");
+  if (error) {
+    throw new Error(error.message ?? "Failed to log out.");
   }
 }

@@ -8,6 +8,7 @@ export type LogLevel = "fatal" | "error" | "warn" | "info" | "debug" | "trace" |
 const defaultClientOrigins = "http://localhost:3000,http://localhost:4000";
 const defaultDatabaseUrl =
   "postgresql://postgres:postgres@localhost:15432/monorepo_template?schema=public";
+const defaultBetterAuthUrl = "http://localhost:8000";
 
 const runtimeEnvSchema = z.enum(["development", "test", "production"]).default("development");
 const logLevelSchema = z
@@ -40,8 +41,9 @@ const serverEnvSchema = z
   .object({
     NODE_ENV: runtimeEnvSchema,
     API_PORT: z.coerce.number().int().positive().default(8000),
-    AUTH_COOKIE_SECURE: booleanSchema.default(false),
-    AUTH_SECRET: z.string().trim().min(1).default("dev-change-me"),
+    AUTH_SECRET: optionalStringSchema,
+    BETTER_AUTH_SECRET: optionalStringSchema,
+    BETTER_AUTH_URL: z.string().trim().url().default(defaultBetterAuthUrl),
     CLIENT_ORIGINS: z.string().trim().min(1).default(defaultClientOrigins),
     DATABASE_URL: z.string().trim().min(1).default(defaultDatabaseUrl),
     ENABLE_TELEMETRY: booleanSchema.default(false),
@@ -54,11 +56,13 @@ const serverEnvSchema = z
     TELEMETRY_SERVICE_NAMESPACE: optionalStringSchema,
   })
   .superRefine((env, context) => {
-    if (env.NODE_ENV === "production" && env.AUTH_SECRET === "dev-change-me") {
+    const betterAuthSecret = env.BETTER_AUTH_SECRET ?? env.AUTH_SECRET ?? "dev-change-me";
+
+    if (env.NODE_ENV === "production" && betterAuthSecret === "dev-change-me") {
       context.addIssue({
         code: "custom",
-        message: "AUTH_SECRET must be changed in production.",
-        path: ["AUTH_SECRET"],
+        message: "BETTER_AUTH_SECRET must be changed in production.",
+        path: ["BETTER_AUTH_SECRET"],
       });
     }
   });
@@ -85,11 +89,10 @@ export const apiConfig = {
   clientOrigins: parseCsv(env.CLIENT_ORIGINS),
 } as const;
 
-export const authConfig = {
-  cookieName: "auth_token",
-  cookieSecure: env.AUTH_COOKIE_SECURE,
-  maxAgeSeconds: 60 * 60 * 24 * 7,
-  secret: env.AUTH_SECRET,
+export const betterAuthConfig = {
+  secret: env.BETTER_AUTH_SECRET ?? env.AUTH_SECRET ?? "dev-change-me",
+  trustedOrigins: parseCsv(env.CLIENT_ORIGINS),
+  url: env.BETTER_AUTH_URL,
 } as const;
 
 export const databaseConfig = {

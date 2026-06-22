@@ -1,5 +1,4 @@
 import { prisma } from "../../utils/prisma";
-import { sanitizeUser } from "../auth/utils";
 import { usersListLimit } from "./utils";
 
 export async function listRecentUsers() {
@@ -8,5 +7,12 @@ export async function listRecentUsers() {
     take: usersListLimit,
   });
 
-  return users.map(sanitizeUser);
+  return users.map((user) => ({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role ?? "user",
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  }));
 }

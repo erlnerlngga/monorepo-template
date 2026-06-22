@@ -41,8 +41,8 @@ services:
     restart: unless-stopped
     environment:
       API_PORT: "${API_PORT:-8000}"
-      AUTH_COOKIE_SECURE: "${AUTH_COOKIE_SECURE:-false}"
-      AUTH_SECRET: "${AUTH_SECRET:-dev-change-me}"
+      BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET:-dev-change-me}"
+      BETTER_AUTH_URL: "${BETTER_AUTH_URL:-http://localhost:8000}"
       CLIENT_ORIGINS: "${CLIENT_ORIGINS:-http://localhost:3000,http://localhost:4000}"
       DATABASE_URL: "${DOCKER_DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/monorepo_template?schema=public}"
       ENABLE_TELEMETRY: "${ENABLE_TELEMETRY:-false}"
