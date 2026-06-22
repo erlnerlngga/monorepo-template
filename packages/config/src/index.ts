@@ -1,13 +1,19 @@
 import type { StorageConfig } from "@repo/storage";
+import type { TelemetryConfig, TelemetryExporter } from "@repo/telemetry";
 import { z } from "zod";
 
 export type RuntimeEnv = "development" | "test" | "production";
+export type LogLevel = "fatal" | "error" | "warn" | "info" | "debug" | "trace" | "silent";
 
 const defaultClientOrigins = "http://localhost:3000,http://localhost:4000";
 const defaultDatabaseUrl =
   "postgresql://postgres:postgres@localhost:15432/monorepo_template?schema=public";
 
 const runtimeEnvSchema = z.enum(["development", "test", "production"]).default("development");
+const logLevelSchema = z
+  .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
+  .default("info");
+const telemetryExporterSchema = z.enum(["console", "otlp"]).default("console");
 const optionalStringSchema = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
   z.string().trim().optional(),
@@ -38,7 +44,14 @@ const serverEnvSchema = z
     AUTH_SECRET: z.string().trim().min(1).default("dev-change-me"),
     CLIENT_ORIGINS: z.string().trim().min(1).default(defaultClientOrigins),
     DATABASE_URL: z.string().trim().min(1).default(defaultDatabaseUrl),
+    ENABLE_TELEMETRY: booleanSchema.default(false),
+    LOG_LEVEL: logLevelSchema,
     REDIS_URL: z.string().trim().min(1).default("redis://localhost:16379"),
+    TELEMETRY_API_KEY: optionalStringSchema,
+    TELEMETRY_API_KEY_HEADER: z.string().trim().min(1).default("authorization"),
+    TELEMETRY_EXPORTER: telemetryExporterSchema,
+    TELEMETRY_EXPORTER_OTLP_ENDPOINT: optionalStringSchema,
+    TELEMETRY_SERVICE_NAMESPACE: optionalStringSchema,
   })
   .superRefine((env, context) => {
     if (env.NODE_ENV === "production" && env.AUTH_SECRET === "dev-change-me") {
@@ -86,6 +99,21 @@ export const databaseConfig = {
 export const redisConfig = {
   url: env.REDIS_URL,
 } as const;
+
+export const loggerConfig = {
+  environment: env.NODE_ENV,
+  level: env.LOG_LEVEL,
+} as const;
+
+export const telemetryConfig = {
+  apiKey: env.TELEMETRY_API_KEY,
+  apiKeyHeader: env.TELEMETRY_API_KEY_HEADER,
+  enabled: env.ENABLE_TELEMETRY,
+  environment: env.NODE_ENV,
+  exporter: env.TELEMETRY_EXPORTER as TelemetryExporter,
+  otlpEndpoint: env.TELEMETRY_EXPORTER_OTLP_ENDPOINT,
+  serviceNamespace: env.TELEMETRY_SERVICE_NAMESPACE,
+} satisfies TelemetryConfig;
 
 export function getStorageConfig(): StorageConfig {
   const storageEnv = storageEnvSchema.parse(process.env);

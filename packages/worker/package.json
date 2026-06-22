@@ -14,12 +14,14 @@
   },
   "scripts": {
     "with-env": "dotenv -e ../../.env --",
-    "dev": "pnpm with-env tsx watch src/index.ts",
-    "start": "pnpm with-env tsx src/index.ts",
+    "dev": "pnpm with-env tsx watch src/main.ts",
+    "start": "pnpm with-env tsx src/main.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@repo/config": "workspace:*",
+    "@repo/logger": "workspace:*",
+    "@repo/telemetry": "workspace:*",
     "bullmq": "^5.79.1"
   },
   "devDependencies": {

@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "with-env": "dotenv -e ../../.env --",
-    "dev": "pnpm with-env tsx watch src/index.ts",
+    "dev": "pnpm with-env tsx watch src/main.ts",
     "build": "tsc -p tsconfig.json --noEmit",
     "db:generate": "pnpm with-env prisma generate",
     "db:migrate": "pnpm with-env prisma migrate dev",
     "db:push": "pnpm with-env prisma db push",
     "db:studio": "pnpm with-env prisma studio",
-    "start": "pnpm with-env tsx src/index.ts",
+    "start": "pnpm with-env tsx src/main.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
@@ -20,6 +20,8 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "7.8.0",
     "@repo/config": "workspace:*",
+    "@repo/logger": "workspace:*",
+    "@repo/telemetry": "workspace:*",
     "hono": "^4.12.26",
     "pg": "^8.22.0",
     "zod": "^4.4.3"

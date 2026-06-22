@@ -7,7 +7,9 @@ pnpm workspace with:
 - `apps/admin`: React + Vite + TanStack Router file routes + TanStack Query.
 - `packages/config`: typed server-side environment config.
 - `packages/i18n`: i18next setup shared by the frontend apps.
+- `packages/logger`: Pino logger setup with OpenTelemetry-friendly trace fields.
 - `packages/storage`: S3-compatible object storage primitives.
+- `packages/telemetry`: OpenTelemetry Node SDK setup for API and worker services.
 - `packages/ui`: shadcn UI components shared by the apps.
 - `packages/worker`: Redis + BullMQ worker primitives.
 
@@ -50,6 +52,47 @@ await storage.putObject({
 ```
 
 Configure it with `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, and optional endpoint/path-style/public URL variables in `.env`.
+
+## Logging
+
+`packages/logger` exports Pino helpers for structured JSON logs.
+
+```ts
+import { loggerConfig } from "@repo/config";
+import { createLogger } from "@repo/logger";
+
+const logger = createLogger({
+  ...loggerConfig,
+  service: "api",
+});
+
+logger.info({ userId: "user_123" }, "User signed in");
+```
+
+Trace-aware helpers use OpenTelemetry-compatible `trace_id`, `span_id`, and `trace_flags` fields. When telemetry is enabled, active span context is attached to Pino logs automatically.
+
+## Telemetry
+
+`packages/telemetry` starts the OpenTelemetry Node SDK before API and worker modules load, so auto-instrumentation can patch supported Node libraries.
+
+Telemetry is disabled by default. For local span output:
+
+```sh
+ENABLE_TELEMETRY=true
+TELEMETRY_EXPORTER=console
+```
+
+For an OTLP HTTP collector:
+
+```sh
+ENABLE_TELEMETRY=true
+TELEMETRY_EXPORTER=otlp
+TELEMETRY_EXPORTER_OTLP_ENDPOINT="https://collector.example.com/v1/traces"
+TELEMETRY_API_KEY="..."
+TELEMETRY_API_KEY_HEADER="authorization"
+```
+
+If `TELEMETRY_API_KEY_HEADER` is `authorization`, the exporter sends `Authorization: Bearer <key>`. Other header names send the raw key value, which fits providers that expect headers such as `x-honeycomb-team`.
 
 ## Docker
 

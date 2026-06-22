@@ -1,9 +1,15 @@
 import { serve } from "@hono/node-server";
-import { apiConfig } from "@repo/config";
+import { apiConfig, loggerConfig } from "@repo/config";
+import { createLogger } from "@repo/logger";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { authRouter } from "./modules/auth/router";
 import { usersRouter } from "./modules/users/router";
+
+const logger = createLogger({
+  ...loggerConfig,
+  service: "api",
+});
 
 const app = new Hono()
   .use(
@@ -25,6 +31,6 @@ serve(
     port: apiConfig.port,
   },
   (info) => {
-    console.log(`API listening on http://localhost:${info.port}`);
+    logger.info({ port: info.port }, "API listening");
   },
 );
