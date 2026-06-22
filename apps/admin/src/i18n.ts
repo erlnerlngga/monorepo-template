@@ -32,6 +32,7 @@ const resources = {
         email: "Email",
         logout: "Logout",
         logoutPending: "Logging out...",
+        logoutFallbackError: "Failed to log out.",
         forbidden: {
           title: "Forbidden",
           description: "Your account cannot access Admin.",
@@ -70,6 +71,7 @@ const resources = {
         email: "Email",
         logout: "Keluar",
         logoutPending: "Sedang keluar...",
+        logoutFallbackError: "Gagal keluar.",
         forbidden: {
           title: "Dilarang",
           description: "Akun Anda tidak dapat mengakses Admin.",
