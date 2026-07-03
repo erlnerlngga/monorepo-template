@@ -1,6 +1,11 @@
-import { createApiClient, fetchSessionUser, UnauthorizedApiError } from "@repo/api-client";
+import {
+  createApiClient,
+  fetchSessionUser,
+  UnauthorizedApiError,
+  updateCurrentUserProfile,
+} from "@repo/api-client";
 import { createAuthClient } from "better-auth/react";
-import type { AuthUser, LoginInput, RegisterInput } from "./types";
+import type { AuthUser, LoginInput, RegisterInput, UpdateProfileInput } from "./types";
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 const apiClient = createApiClient(apiBaseUrl);
@@ -12,6 +17,10 @@ export { UnauthorizedApiError as UnauthorizedError };
 
 export async function getCurrentUser() {
   return (await fetchSessionUser(apiClient)) as AuthUser;
+}
+
+export async function updateProfile(input: UpdateProfileInput) {
+  return (await updateCurrentUserProfile(apiClient, input)) as AuthUser;
 }
 
 export async function login(input: LoginInput) {

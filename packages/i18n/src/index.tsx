@@ -1,5 +1,12 @@
 import i18next, { type i18n, type Resource } from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/components/select";
 import type { ReactNode } from "react";
 import { I18nextProvider, initReactI18next, useTranslation } from "react-i18next";
 
@@ -15,6 +22,11 @@ export const defaultLanguage = "en" satisfies SupportedLanguage;
 export const languageLabels = {
   en: "English",
   id: "Bahasa Indonesia",
+} satisfies Record<SupportedLanguage, string>;
+
+const languageShortLabels = {
+  en: "EN",
+  id: "ID",
 } satisfies Record<SupportedLanguage, string>;
 
 export type FrontendI18nOptions = {
@@ -67,23 +79,27 @@ export function LanguageSwitcher() {
   const activeLanguage = getSupportedLanguage(i18n.resolvedLanguage ?? i18n.language);
 
   return (
-    <label className="flex items-center gap-2 text-sm text-muted-foreground">
-      <span>{t("language.label")}</span>
-      <select
+    <Select
+      value={activeLanguage}
+      onValueChange={(language) => {
+        void i18n.changeLanguage(language);
+      }}
+    >
+      <SelectTrigger
         aria-label={t("language.label")}
-        className="h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground shadow-xs outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        value={activeLanguage}
-        onChange={(event) => {
-          void i18n.changeLanguage(event.target.value);
-        }}
+        className="h-8 min-w-[4.25rem] rounded-md border-border/70 bg-background/80 px-2 text-xs font-semibold text-foreground shadow-none hover:bg-accent focus-visible:ring-2"
+        size="sm"
       >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="end" className="min-w-20">
         {supportedLanguages.map((language) => (
-          <option key={language} value={language}>
-            {t(`language.options.${language}`, languageLabels[language])}
-          </option>
+          <SelectItem key={language} className="text-xs font-semibold" value={language}>
+            {languageShortLabels[language]}
+          </SelectItem>
         ))}
-      </select>
-    </label>
+      </SelectContent>
+    </Select>
   );
 }
 

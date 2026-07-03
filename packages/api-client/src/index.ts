@@ -11,6 +11,11 @@ export function createApiClient(baseUrl: string) {
 
 export type ApiClient = ReturnType<typeof createApiClient>;
 
+export type UpdateProfileInput = {
+  image?: string | null;
+  name: string;
+};
+
 export class UnauthorizedApiError extends Error {
   constructor() {
     super("Unauthorized");
@@ -27,6 +32,24 @@ export async function fetchSessionUser(client: ApiClient) {
 
   if (!response.ok) {
     throw new Error("Failed to load current user.");
+  }
+
+  const data = await response.json();
+
+  return data.user;
+}
+
+export async function updateCurrentUserProfile(client: ApiClient, input: UpdateProfileInput) {
+  const response = await client.profile.$patch({
+    json: input,
+  });
+
+  if (response.status === 401) {
+    throw new UnauthorizedApiError();
+  }
+
+  if (!response.ok) {
+    throw new Error("Failed to update profile.");
   }
 
   const data = await response.json();

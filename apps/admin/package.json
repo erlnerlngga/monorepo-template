@@ -15,10 +15,9 @@
     "@repo/i18n": "workspace:*",
     "@repo/ui": "workspace:*",
     "@tanstack/react-query": "^5.101.0",
-    "@tanstack/react-query-devtools": "^5.101.0",
     "@tanstack/react-router": "^1.170.16",
-    "@tanstack/router-devtools": "^1.167.0",
     "better-auth": "^1.6.20",
+    "lucide-react": "^1.21.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

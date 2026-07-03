@@ -1,7 +1,7 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { authQueryKey } from "../schema";
-import { getCurrentUser, login, logout } from "../services";
+import { getCurrentUser, login, logout, updateProfile } from "../services";
 
 export const meQueryOptions = queryOptions({
   queryKey: [...authQueryKey, "me"],
@@ -31,6 +31,18 @@ export function useLogoutMutation() {
     onSuccess: async () => {
       queryClient.removeQueries({ queryKey: authQueryKey });
       await navigate({ to: "/login" });
+    },
+  });
+}
+
+export function useUpdateProfileMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateProfile,
+    onSuccess: (user) => {
+      queryClient.setQueryData(meQueryOptions.queryKey, user);
+      void queryClient.invalidateQueries({ queryKey: authQueryKey });
     },
   });
 }

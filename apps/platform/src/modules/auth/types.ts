@@ -1,9 +1,11 @@
 export type AuthUser = {
-  id: string;
+  createdAt: string;
   email: string;
+  emailVerified?: boolean;
+  id: string;
+  image?: string | null;
   name: string;
   role?: string | null;
-  createdAt: string;
   updatedAt: string;
 };
 
@@ -16,6 +18,11 @@ export type RegisterInput = {
   email: string;
   password: string;
   name?: string;
+};
+
+export type UpdateProfileInput = {
+  image?: string | null;
+  name: string;
 };
 
 export type AuthResponse = {

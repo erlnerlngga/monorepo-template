@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AppI18nProvider } from "@repo/i18n";
 import { Toaster } from "@repo/ui/components/sonner";
+import { ThemeProvider } from "@repo/ui/components/theme-selector";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -33,12 +33,13 @@ declare module "@tanstack/react-router" {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <AppI18nProvider i18n={i18n}>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <Toaster richColors />
-        {import.meta.env.DEV ? <ReactQueryDevtools buttonPosition="bottom-left" /> : null}
-      </QueryClientProvider>
-    </AppI18nProvider>
+    <ThemeProvider storageKey="platform:theme">
+      <AppI18nProvider i18n={i18n}>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+          <Toaster richColors />
+        </QueryClientProvider>
+      </AppI18nProvider>
+    </ThemeProvider>
   </StrictMode>,
 );
