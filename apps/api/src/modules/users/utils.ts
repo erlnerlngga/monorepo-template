@@ -1,1 +1,2 @@
-export const usersListLimit = 20;
+export const usersListDefaultLimit = 20;
+export const usersListMaxLimit = 100;

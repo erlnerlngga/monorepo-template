@@ -8,5 +8,6 @@ export type UserListItem = {
 };
 
 export type UsersResponse = {
+  nextCursor: string | null;
   users: UserListItem[];
 };

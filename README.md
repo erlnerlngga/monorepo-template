@@ -53,6 +53,8 @@ Frontend apps should use:
 - `createApiClient()` from `@repo/api-client` for typed API routes such as `/session` and `/users`.
 
 Configure auth with `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, and `CLIENT_ORIGINS` in `.env`.
+Use a unique `BETTER_AUTH_SECRET`; production environments reject the default value and secrets
+shorter than 32 characters.
 
 Create or promote an admin user:
 
@@ -127,7 +129,9 @@ cp .env.example .env
 docker compose up --build
 ```
 
-This starts Postgres, Redis, API, Platform, Admin, and Worker. The Docker services still use the single root `.env`; `DOCKER_DATABASE_URL` and `DOCKER_REDIS_URL` point containers at the Compose service names. Postgres and Redis are internal-only in `docker-compose.yaml`; use `docker-compose.dev.yaml` when you want host access to those ports for local tooling.
+This local full-stack Compose file starts Postgres, Redis, API, Platform, Admin, and Worker. The Docker services still use the single root `.env`; `DOCKER_DATABASE_URL` and `DOCKER_REDIS_URL` point containers at the Compose service names. Postgres and Redis are internal-only in `docker-compose.yaml`; use `docker-compose.dev.yaml` when you want host access to those ports for local tooling.
+
+The API container runs Prisma migrations with `pnpm db:deploy` on startup. If you already created a local Compose database with the older `db:push` flow, reset the local volume or baseline the database before switching to migrations.
 
 The default local ports are:
 

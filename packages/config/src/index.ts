@@ -9,6 +9,8 @@ const defaultClientOrigins = "http://localhost:3000,http://localhost:4000";
 const defaultDatabaseUrl =
   "postgresql://postgres:postgres@localhost:15432/monorepo_template?schema=public";
 const defaultBetterAuthUrl = "http://localhost:8000";
+const defaultBetterAuthSecret = "dev-change-me";
+const productionSecretMinimumLength = 32;
 
 const runtimeEnvSchema = z.enum(["development", "test", "production"]).default("development");
 const logLevelSchema = z
@@ -56,12 +58,24 @@ const serverEnvSchema = z
     TELEMETRY_SERVICE_NAMESPACE: optionalStringSchema,
   })
   .superRefine((env, context) => {
-    const betterAuthSecret = env.BETTER_AUTH_SECRET ?? env.AUTH_SECRET ?? "dev-change-me";
+    const betterAuthSecret = env.BETTER_AUTH_SECRET ?? env.AUTH_SECRET ?? defaultBetterAuthSecret;
 
-    if (env.NODE_ENV === "production" && betterAuthSecret === "dev-change-me") {
+    if (env.NODE_ENV !== "production") {
+      return;
+    }
+
+    if (betterAuthSecret === defaultBetterAuthSecret) {
       context.addIssue({
         code: "custom",
         message: "BETTER_AUTH_SECRET must be changed in production.",
+        path: ["BETTER_AUTH_SECRET"],
+      });
+    }
+
+    if (betterAuthSecret.length < productionSecretMinimumLength) {
+      context.addIssue({
+        code: "custom",
+        message: `BETTER_AUTH_SECRET must be at least ${productionSecretMinimumLength} characters in production.`,
         path: ["BETTER_AUTH_SECRET"],
       });
     }
@@ -77,7 +91,11 @@ const storageEnvSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.string().trim().min(1),
 });
 
-export const env = serverEnvSchema.parse(process.env);
+export function parseServerEnv(environment: NodeJS.ProcessEnv) {
+  return serverEnvSchema.parse(environment);
+}
+
+export const env = parseServerEnv(process.env);
 
 export const appConfig = {
   nodeEnv: env.NODE_ENV,
@@ -90,7 +108,7 @@ export const apiConfig = {
 } as const;
 
 export const betterAuthConfig = {
-  secret: env.BETTER_AUTH_SECRET ?? env.AUTH_SECRET ?? "dev-change-me",
+  secret: env.BETTER_AUTH_SECRET ?? env.AUTH_SECRET ?? defaultBetterAuthSecret,
   trustedOrigins: parseCsv(env.CLIENT_ORIGINS),
   url: env.BETTER_AUTH_URL,
 } as const;

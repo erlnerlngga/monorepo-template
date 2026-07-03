@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import type { AuthVariables } from "../auth/middleware";
 import { requireAdmin } from "../auth/middleware";
 import { usersQuerySchema } from "./schema";
-import { listRecentUsers } from "./services";
+import { InvalidUsersCursorError, listRecentUsers } from "./services";
 
 export const usersRouter = new Hono<{ Variables: AuthVariables }>().get(
   "/",
@@ -15,8 +15,16 @@ export const usersRouter = new Hono<{ Variables: AuthVariables }>().get(
       return c.json({ error: "forbidden" }, 403);
     }
 
-    const users = await listRecentUsers();
+    try {
+      const result = await listRecentUsers(c.req.valid("query"));
 
-    return c.json({ users }, 200);
+      return c.json(result, 200);
+    } catch (error) {
+      if (error instanceof InvalidUsersCursorError) {
+        return c.json({ error: "invalid_cursor" }, 400);
+      }
+
+      throw error;
+    }
   },
 );

@@ -1,4 +1,4 @@
-import { createApiClient } from "@repo/api-client";
+import { createApiClient, fetchSessionUser, UnauthorizedApiError } from "@repo/api-client";
 import { createAuthClient } from "better-auth/react";
 import type { AuthUser, LoginInput, RegisterInput } from "./types";
 
@@ -8,27 +8,10 @@ const authClient = createAuthClient({
   baseURL: apiBaseUrl,
 });
 
-export class UnauthorizedError extends Error {
-  constructor() {
-    super("Unauthorized");
-    this.name = "UnauthorizedError";
-  }
-}
+export { UnauthorizedApiError as UnauthorizedError };
 
 export async function getCurrentUser() {
-  const response = await apiClient.session.$get();
-
-  if (response.status === 401) {
-    throw new UnauthorizedError();
-  }
-
-  if (!response.ok) {
-    throw new Error("Failed to load current user.");
-  }
-
-  const data = await response.json();
-
-  return data.user as AuthUser;
+  return (await fetchSessionUser(apiClient)) as AuthUser;
 }
 
 export async function login(input: LoginInput) {
